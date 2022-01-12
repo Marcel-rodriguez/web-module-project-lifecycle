@@ -44,14 +44,64 @@ class App extends React.Component {
     })
   }
 
+  componentDidUpdate(prevProps, prevState){
+    if(prevState.currentUser !== this.currentUser){
+      console.log('User Changed')
+      axios.get(`https://api.github.com/users/${this.state.currentUser}`)
+      .then(resp => {
+        console.log(resp.data)
+        this.setState({
+          ...this.state,
+          currentUser: resp.data.avatar_url,
+          avatar: resp.data.avatar_url,
+          username: resp.data.login,
+          followers: resp.data.followers,
+          following: resp.data.following,
+          repos: resp.data.public_repos,
+        })
+      })
+      .catch(err => {
+        console.error(err)
+      })
+
+      axios.get(`https://api.github.com/users/${this.state.currentUser}/followers`)
+    .then(resp => {
+      console.log(resp.data)
+      this.setState({
+        ...this.state,
+        followerList: resp.data
+      })
+    })
+    .catch(err => {
+      console.error(err)
+    })
+    }
+  }
+
+  handleSelectUser = (e) => {
+    console.log(e.target)
+    this.setState({
+      ...this.state,
+      currentUser: e.target.alt
+    })
+  }
+
+  handleSearchInput = (e) => {
+    console.log(e.target.value)
+  }
+
+  handleSearch = (e) => {
+    e.preventDefault()
+  }
+
   render() {
-    console.log('User Image: ', this.state.currentUser)
+    console.log('Current User: ', this.state.currentUser)
     console.log('Follower List: ', this.state.followerList)
     return(<div>
       <div className='search-bar'>
       <h1>Github Info</h1>
       <form>
-      <input />
+      <input onChange={this.handleSearchInput} />
       <button>Search</button>
       </form>
       </div>
@@ -71,7 +121,7 @@ class App extends React.Component {
           {
             this.state.followerList.map(follower => {
               return <div>
-                <img src={follower.avatar_url} alt={follower.id}/>
+                <img onClick={this.handleSelectUser} src={follower.avatar_url} alt={follower.login}/>
                 <h3>{follower.login}</h3>
               </div>
             })
